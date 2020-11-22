@@ -1,90 +1,198 @@
-# NxExperiment
+# Playing with NX
 
-This project was generated using [Nx](https://nx.dev).
+* Creating a workspace
+```shell script
+npx create-nx-workspace workspace-name
+```
 
-<p align="center"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="450"></p>
+* Open the workspace in the IDE. Install NX extensions/plugins 
+for the IDE.
 
-🔎 **Nx is a set of Extensible Dev Tools for Monorepos.**
+* Run `nx list` for listing all options.  
 
-## Adding capabilities to your workspace
 
-Nx supports many plugins which add capabilities for developing different types of applications and different tools.
+### React app
+* Install plugins
+```shell script
+npm i -D @nrwl/react
+```
 
-These capabilities include generating applications, libraries, etc as well as the devtools to test, and build projects as well.
+* `nx list @nrwl/react` <br>
+Schematics:
+  * init : Initialize the @nrwl/react plugin
+  * application : Create an application
+  * library : Create a library
+  * component : Create a component
+  * redux : Create a redux slice for a project
+  * storybook-configuration : Set up storybook for a react library
+  * component-story : Generate storybook story for a react component
+  * stories : Create stories/specs for all components declared in a library
+  * component-cypress-spec : Create a cypress spec for a ui component that has a story
 
-Below are our core plugins:
+* `nx g @nrwl/react:application --help` <br>
+Options:
+  - --name                  The name of the application.
+  - --directory             The directory of the new application.
+  - --style                 The file extension to be used for style files. (default: css)
+  - --linter                The tool to use for running lint checks. (default: eslint)
+  - --routing               Generate application with routes.
+  - --skipFormat            Skip formatting files.
+  - --skipWorkspaceJson     Skip updating workspace.json with default schematic options based on values provided to this app (e.g. babel, style).
+  - --unitTestRunner        Test runner to use for unit tests. (default: jest)
+  - --e2eTestRunner         Test runner to use for end to end (e2e) tests. (default: cypress)
+  - --tags                  Add tags to the application (used for linting).
+  - --pascalCaseFiles       Use pascal case component file name (e.g. App.tsx).
+  - --classComponent        Use class components instead of functional component.
+  - --js                    Generate JavaScript files rather than TypeScript files.
+  - --dryRun                Runs through and reports activity without writing to disk.
+  - --help                  Show available options for project target.
 
-- [React](https://reactjs.org)
-  - `npm install --save-dev @nrwl/react`
-- Web (no framework frontends)
-  - `npm install --save-dev @nrwl/web`
-- [Angular](https://angular.io)
-  - `npm install --save-dev @nrwl/angular`
-- [Nest](https://nestjs.com)
-  - `npm install --save-dev @nrwl/nest`
-- [Express](https://expressjs.com)
-  - `npm install --save-dev @nrwl/express`
-- [Node](https://nodejs.org)
-  - `npm install --save-dev @nrwl/node`
+* Creating an app 
+```shell script
+nx g @nrwl/react:application --name first-app`
+```
 
-There are also many [community plugins](https://nx.dev/nx-community) you could add.
+* Serving an app 
+```shell script
+nx run first-app:serve --port=3001
+```
 
-## Generate an application
+* Test
+```shell script
+nx run first-app:test
+```
 
-Run `nx g @nrwl/react:app my-app` to generate an application.
+* Building
+```shell script
+nx run first-app:build --configuration=production
+nx build first-app --configuration=production     # alternative
+```
 
-> You can use any of the plugins above to generate applications as well.
+* Linting
+```shell script
+nx run first-app:lint
+```
 
-When using Nx, you can create multiple applications and libraries in the same workspace.
 
-## Generate a library
+### React library
+* Creating a shared-ui-library
+```shell script
+nx g @nrwl/react:library first-library
+``` 
 
-Run `nx g @nrwl/react:lib my-lib` to generate a library.
+* Creating a component in a shared-ui-library
+```shell script
+nx g @nrwl/react:component header --project=first-library
+```
 
-> You can also use any of the plugins above to generate libraries as well.
+* Importing from shared-ui-library in app
+```js
+import { Header } from "@nx-experiment/first-library";
+```
 
-Libraries are sharable across libraries and applications. They can be imported from `@nx-experiment/mylib`.
 
-## Development server
+## Generic typescript library
+* Creating a generic Typescript library
+```shell script
+nx g @nrwl/workspace:library utilities
+```
 
-Run `nx serve my-app` for a dev server. Navigate to http://localhost:4200/. The app will automatically reload if you change any of the source files.
+* Importing from generic Typescript library
+```js
+import {utilities} from "@nx-experiment/utilities";
+```
 
-## Code scaffolding
 
-Run `nx g @nrwl/react:component my-component --project=my-app` to generate a new component.
+### Express
+* Install plugins
+```shell script
+npm i -D @nrwl/express
+```
 
-## Build
+* Generate new express App
+```shell script
+nx generate @nrwl/express:application first-api --frontendProject=first-app  
+# This will add proxy in the frontend project for the API
+```
 
-Run `nx build my-app` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+* Run
+```shell script
+nx run first-api:serve
+```
 
-## Running unit tests
 
-Run `nx test my-app` to execute the unit tests via [Jest](https://jestjs.io).
+### Running multiple apps together
+* Everything in CLI
+```shell script
+nx run-many --target=serve --projects=first-api,first-app --parallel=true
+```
+* Adding a target (in the `workspace.json`, in some project's architect property)
+```json
+{
+  "projects": {
+    "first-app": {
+      "architect": {
+        "serveApiAndLaunchApp": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "nx run first-api:serve"
+              },
+              {
+                "command": "nx run first-app:serve"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+```
+And in the CLI,
+```shell script
+nx run first-app:serveApiAndLaunchApp
+```
 
-Run `nx affected:test` to execute the unit tests affected by a change.
 
-## Running end-to-end tests
+### Story Books
+* Install Plugin
+```shell script
+npm i -D @nrwl/storybook
+```
 
-Run `ng e2e my-app` to execute the end-to-end tests via [Cypress](https://www.cypress.io).
+* Create a storybook configuration
+```shell script
+nx g @nrwl/react:storybook-configuration first-library --configureCypress --generateStories
+```
 
-Run `nx affected:e2e` to execute the end-to-end tests affected by a change.
+* Running storybook
+```shell script
+nx run first-library:storybook
+```
 
-## Understand your workspace
+* Running cypress
+```shell script
+nx run first-library-e2e:e2e             
+nx run first-library-e2e:e2e --watch     # For interaction
+nx run first-library-e2e:e2e --headless  # For CI
+```
 
-Run `nx dep-graph` to see a diagram of the dependencies of your projects.
 
-## Further help
+### CI
+* Test all affected apps and libs
+```shell script
+nx affected:test --base=master    
+# base -> branch to be compared to get affected/changed apps or libs
+```
 
-Visit the [Nx Documentation](https://nx.dev) to learn more.
+* Lint all affected apps and libs
+```shell script
+nx affected:lint --base=master
+```
 
-## ☁ Nx Cloud
-
-### Computation Memoization in the Cloud
-
-<p align="center"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-cloud-card.png"></p>
-
-Nx Cloud pairs with Nx in order to enable you to build and test code more rapidly, by up to 10 times. Even teams that are new to Nx can connect to Nx Cloud and start saving time instantly.
-
-Teams using Nx gain the advantage of building full-stack applications with their preferred framework alongside Nx’s advanced code generation and project dependency graph, plus a unified experience for both frontend and backend developers.
-
-Visit [Nx Cloud](https://nx.app/) to learn more.
+* Build all affected apps and libs
+```shell script
+nx affected:build --base=master
+```

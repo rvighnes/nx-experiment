@@ -15,7 +15,10 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@nx-experiment/first-library": ["libs/first-library/src/index.ts"],
+      "@nx-experiment/utilities": ["libs/utilities/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
